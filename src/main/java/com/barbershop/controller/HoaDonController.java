@@ -29,11 +29,11 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Font;
-import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.BaseFont; // 🔹 THÊM DÒNG NÀY
 
 @Controller
 @RequestMapping("/admin/hoadon")
@@ -140,8 +140,6 @@ public class HoaDonController {
         HoaDon hd = hoaDonRepo.findById(maHd).orElse(null);
 
         model.addAttribute("hoaDon", hd);
-        // vẫn load tất cả lịch hẹn, nhưng ở dưới ta sẽ KHÔNG cho đổi lichHen trong
-        // backend
         model.addAttribute("listLichHen", lichHenRepo.findAll());
         return "hoadon-edit";
     }
@@ -150,15 +148,11 @@ public class HoaDonController {
     @PostMapping("/edit")
     public String edit(@ModelAttribute HoaDon hd) {
 
-        // Lấy hóa đơn hiện có trong DB
         HoaDon existing = hoaDonRepo.findById(hd.getMaHd()).orElse(null);
         if (existing == null) {
             return "redirect:/admin/hoadon";
         }
 
-        // ❗ KHÔNG cho đổi lịch hẹn trong backend
-        // => giữ nguyên lichHen cũ, chỉ update các field còn lại (phương thức, ngày TT,
-        // tổng tiền)
         LichHen lichHen = existing.getLichHen();
         if (lichHen == null || lichHen.getMaLh() == null) {
             return "redirect:/admin/hoadon?error=missing_lichhen";
@@ -166,10 +160,8 @@ public class HoaDonController {
 
         Integer maLh = lichHen.getMaLh();
 
-        // Cập nhật phương thức thanh toán (và các field khác nếu bạn có)
         existing.setPhuongThucTt(hd.getPhuongThucTt());
 
-        // Tính lại tổng tiền theo dịch vụ của lịch hẹn này
         List<LichHenDichVu> ds = lichHenDichVuRepo.findByLichHen_MaLh(maLh);
         existing.tinhTongTien(ds);
         existing.setNgayThanhToan(LocalDate.now());
@@ -248,14 +240,19 @@ public class HoaDonController {
         PdfWriter.getInstance(document, baos);
         document.open();
 
-        Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16);
-        Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 11);
-        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
+        // 🔥 DÙNG ARIAL CÓ SẴN TRONG WINDOWS – HỖ TRỢ TIẾNG VIỆT
+        BaseFont bf = BaseFont.createFont(
+                "C:/Windows/Fonts/arial.ttf",
+                BaseFont.IDENTITY_H,
+                BaseFont.EMBEDDED);
+        Font titleFont = new Font(bf, 16, Font.BOLD);
+        Font normalFont = new Font(bf, 11, Font.NORMAL);
+        Font boldFont = new Font(bf, 11, Font.BOLD);
 
         Paragraph title = new Paragraph("HÓA ĐƠN THANH TOÁN", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         document.add(title);
-        document.add(new Paragraph(" "));
+        document.add(new Paragraph(" ", normalFont));
 
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String ngay = hd.getNgayThanhToan() != null ? hd.getNgayThanhToan().format(df) : "";
@@ -266,9 +263,9 @@ public class HoaDonController {
         document.add(new Paragraph("Mã hóa đơn: " + hd.getMaHd(), normalFont));
         document.add(new Paragraph("Ngày thanh toán: " + ngay, normalFont));
         document.add(new Paragraph("Khách hàng: " + tenKhach, normalFont));
-        document.add(new Paragraph("Phương thức: " + (hd.getPhuongThucTt() != null ? hd.getPhuongThucTt() : ""),
-                normalFont));
-        document.add(new Paragraph(" "));
+        document.add(new Paragraph("Phương thức: " +
+                (hd.getPhuongThucTt() != null ? hd.getPhuongThucTt() : ""), normalFont));
+        document.add(new Paragraph(" ", normalFont));
 
         PdfPTable table = new PdfPTable(3);
         table.setWidthPercentage(100);
@@ -296,8 +293,9 @@ public class HoaDonController {
         }
 
         document.add(table);
-        document.add(new Paragraph(" "));
-        document.add(new Paragraph("Tổng tiền: " + String.format("%.0f", tongTien) + " VND", boldFont));
+        document.add(new Paragraph(" ", normalFont));
+        document.add(new Paragraph("Tổng tiền: " +
+                String.format("%.0f", tongTien) + " VND", boldFont));
 
         document.close();
 

@@ -20,9 +20,12 @@ import java.util.*;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.itextpdf.text.pdf.BaseFont; // 🔹 THÊM DÒNG NÀY
 
 @Controller
 @RequestMapping("/admin/thongke")
@@ -327,35 +330,51 @@ public class ThongKeDoanhThuController {
             PdfWriter.getInstance(doc, response.getOutputStream());
             doc.open();
 
+            // 🔥 FONT ARIAL CÓ SẴN TRONG WINDOWS – HỖ TRỢ TIẾNG VIỆT
+            BaseFont bf = BaseFont.createFont(
+                    "C:/Windows/Fonts/arial.ttf",
+                    BaseFont.IDENTITY_H,
+                    BaseFont.EMBEDDED);
+            Font titleFont = new Font(bf, 14, Font.BOLD);
+            Font normalFont = new Font(bf, 11, Font.NORMAL);
+            Font boldFont = new Font(bf, 11, Font.BOLD);
+
             // Tiêu đề
-            doc.add(new Paragraph("BÁO CÁO DOANH THU THÁNG"));
-            doc.add(new Paragraph(String.format("Tháng %02d/%d", thang, nam)));
-            doc.add(new Paragraph(" "));
+            doc.add(new Paragraph("BÁO CÁO DOANH THU THÁNG", titleFont));
+            doc.add(new Paragraph(String.format("Tháng %02d/%d", thang, nam), normalFont));
+            doc.add(new Paragraph(" ", normalFont));
 
             // Tổng quan
-            doc.add(new Paragraph("TỔNG QUAN"));
-            doc.add(new Paragraph(String.format("Tổng doanh thu: %,.0f VND", tongDoanhThu)));
-            doc.add(new Paragraph(String.format("Số hóa đơn: %d", soHoaDon)));
-            doc.add(new Paragraph(String.format("Doanh thu trung bình / hóa đơn: %,.0f VND", doanhThuTrungBinh)));
-            doc.add(new Paragraph(" "));
+            doc.add(new Paragraph("TỔNG QUAN", boldFont));
+            doc.add(new Paragraph(String.format("Tổng doanh thu: %,.0f VND", tongDoanhThu), normalFont));
+            doc.add(new Paragraph(String.format("Số hóa đơn: %d", soHoaDon), normalFont));
+            doc.add(new Paragraph(
+                    String.format("Doanh thu trung bình / hóa đơn: %,.0f VND", doanhThuTrungBinh),
+                    normalFont));
+            doc.add(new Paragraph(" ", normalFont));
 
             // Bảng doanh thu theo ngày
-            doc.add(new Paragraph("Doanh thu theo ngày trong tháng"));
+            doc.add(new Paragraph("Doanh thu theo ngày trong tháng", boldFont));
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setWidths(new float[] { 1f, 3f });
 
-            table.addCell(new PdfPCell(new Paragraph("Ngày")));
-            table.addCell(new PdfPCell(new Paragraph("Doanh thu (VND)")));
+            PdfPCell head1 = new PdfPCell(new Phrase("Ngày", boldFont));
+            PdfPCell head2 = new PdfPCell(new Phrase("Doanh thu (VND)", boldFont));
+            table.addCell(head1);
+            table.addCell(head2);
 
             if (doanhThuTheoNgay.isEmpty()) {
-                PdfPCell cell = new PdfPCell(new Paragraph("Không có hóa đơn trong tháng này."));
+                PdfPCell cell = new PdfPCell(
+                        new Phrase("Không có hóa đơn trong tháng này.", normalFont));
                 cell.setColspan(2);
                 table.addCell(cell);
             } else {
                 for (Map.Entry<Integer, Double> entry : doanhThuTheoNgay.entrySet()) {
-                    table.addCell(new PdfPCell(new Paragraph(String.valueOf(entry.getKey()))));
-                    table.addCell(new PdfPCell(new Paragraph(String.format("%,.0f", entry.getValue()))));
+                    table.addCell(new PdfPCell(
+                            new Phrase(String.valueOf(entry.getKey()), normalFont)));
+                    table.addCell(new PdfPCell(
+                            new Phrase(String.format("%,.0f", entry.getValue()), normalFont)));
                 }
             }
 
