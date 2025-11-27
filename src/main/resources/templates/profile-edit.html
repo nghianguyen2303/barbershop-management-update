@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật thông tin cá nhân</title>
+
+    <style>
+        body { background: #f4f4f4; font-family: Arial; padding: 20px; }
+        .container {
+            width: 480px; margin: auto; background: #fff;
+            padding: 25px; border-radius: 10px;
+            box-shadow: 0 0 10px #ccc;
+        }
+        h2 { text-align: center; color: #1976d2; margin-bottom: 20px; }
+        label { margin-top: 12px; font-weight: bold; display: block; }
+        input {
+            width: 100%; padding: 10px; margin-top: 5px;
+            border: 1px solid #aaa; border-radius: 6px;
+        }
+        .error { color: red; font-size: 14px; margin-top: 5px; }
+        button {
+            margin-top: 20px; padding: 12px; width: 100%;
+            background: #1976d2; border: none; border-radius: 6px;
+            color: white; font-size: 16px; cursor: pointer;
+        }
+        button:hover { background: #0d47a1; }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Cập nhật thông tin cá nhân</h2>
+
+    <form th:action="@{/user/profile/update}" method="post">
+
+        <input type="hidden" name="id" th:value="${kh.makh}" />
+
+        <label>Họ và tên:</label>
+        <input type="text" name="hoTen" th:value="${kh.hoTen}" required>
+
+        <label>Email:</label>
+        <input type="email" name="email" th:value="${kh.email}" required>
+
+        <label>Số điện thoại:</label>
+        <input type="text" id="sdt" name="sdt" th:value="${kh.sdt}" required>
+        <div id="phoneError" class="error"></div>
+
+        <label>Địa chỉ:</label>
+        <input type="text" name="diaChi" th:value="${kh.diaChi}">
+
+        <button type="submit" id="btnSave">💾 Lưu thay đổi</button>
+    </form>
+
+    <a href="/user/home" style="display:block;margin-top:15px;">← Quay lại</a>
+</div>
+
+<script>
+    const sdtInput = document.getElementById("sdt");
+    const phoneError = document.getElementById("phoneError");
+    const btn = document.getElementById("btnSave");
+
+    sdtInput.addEventListener("input", function () {
+
+        const sdt = this.value;
+        const id = document.querySelector("input[name='id']").value;
+
+        if (sdt.length < 9) {
+            phoneError.textContent = "";
+            btn.disabled = false;
+            return;
+        }
+
+        fetch(`/user/check-phone?sdt=${sdt}&id=${id}`)
+            .then(res => res.json())
+            .then(isDuplicate => {
+                if (isDuplicate) {
+                    phoneError.textContent = "⚠ Số điện thoại đã được sử dụng!";
+                    btn.disabled = true;
+                } else {
+                    phoneError.textContent = "";
+                    btn.disabled = false;
+                }
+            });
+    });
+</script>
+
+</body>
+</html>

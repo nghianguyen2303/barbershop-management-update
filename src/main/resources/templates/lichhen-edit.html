@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật Lịch hẹn</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f4f6fb;
+        }
+
+        .form-card {
+            max-width: 520px;
+            margin: 32px auto;
+            border-radius: 18px;
+            border: none;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+        }
+
+        .dv-box {
+            border-radius: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .alert-error {
+            border-radius: 12px;
+        }
+
+        .busy {
+            background: #ffe0e0;
+        }
+
+        .free {
+            background: #e3f2fd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container" th:data-current-time="${lichHen.gioHen}" th:data-id="${lichHen.maLh}">
+
+        <div class="card form-card">
+            <div class="card-header bg-primary text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fa-regular fa-calendar-check me-1"></i> Cập nhật Lịch hẹn
+                </h5>
+                <small class="d-block text-white-50">
+                    Điều chỉnh lại ngày, nhân viên, dịch vụ và khung giờ phù hợp.
+                </small>
+            </div>
+
+            <div class="card-body">
+                <div th:if="${errorMsg}" class="alert alert-danger alert-error" th:text="${errorMsg}"></div>
+
+                <form th:action="@{/user/lichhen/edit}" method="post" id="editForm">
+
+                    <input type="hidden" name="maLh" th:value="${lichHen.maLh}" />
+
+                    <!-- Ngày -->
+                    <div class="mb-3">
+                        <label class="form-label">Ngày hẹn</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-regular fa-calendar"></i></span>
+                            <input type="date" id="ngayHen" name="ngayHen" class="form-control"
+                                th:value="${lichHen.ngayHen}" required />
+                        </div>
+                    </div>
+
+                    <!-- Nhân viên -->
+                    <div class="mb-3">
+                        <label class="form-label">Nhân viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-user-tie"></i></span>
+                            <select id="nhanVien" name="nhanVien" class="form-select" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                                <option th:each="nv : ${listNhanVien}" th:value="${nv.manv}" th:text="${nv.hoTen}"
+                                    th:selected="${nv.manv == lichHen.nhanVien.manv}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dịch vụ -->
+                    <div class="mb-3">
+                        <label class="form-label">Dịch vụ</label>
+                        <div class="dv-box border bg-light p-2">
+                            <label class="form-check" th:each="dv : ${listDichVu}">
+                                <input type="checkbox" class="form-check-input dv-check" name="dichVuChon"
+                                    th:value="${dv.maDv}" th:checked="${selectedDvIds.contains(dv.maDv)}" />
+                                <span class="form-check-label">
+                                    <span class="fw-semibold" th:text="${dv.tenDv}"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <small class="text-muted">Bạn có thể thay đổi/giữ nguyên các dịch vụ đã chọn.</small>
+                    </div>
+
+                    <!-- Giờ -->
+                    <div class="mb-3">
+                        <label class="form-label">Giờ hẹn</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-regular fa-clock"></i></span>
+                            <select id="gioHen" name="gioHen" class="form-select" disabled required>
+                                <option value="">-- Chọn giờ --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Cập nhật lịch hẹn
+                    </button>
+                </form>
+
+                <a href="/user/home" class="btn btn-link mt-3">
+                    ← Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* Normalize DB time (HH:mm:ss -> HH:mm) */
+        function normalizeTime(t) {
+            if (!t) return '';
+            return t.length >= 5 ? t.substring(0, 5) : t;
+        }
+
+        /* Kiểm tra điều kiện bật select giờ */
+        function checkEnableTimeEdit() {
+            const date = document.getElementById('ngayHen').value;
+            const manv = document.getElementById('nhanVien').value;
+
+            let dvCount = 0;
+            document.querySelectorAll('.dv-check:checked').forEach(() => dvCount++);
+
+            const select = document.getElementById('gioHen');
+
+            if (date && manv && dvCount > 0) {
+                select.disabled = false;
+                loadTimeSlotsEdit();
+            } else {
+                select.disabled = true;
+                select.innerHTML = '<option value="">-- Chọn giờ --</option>';
+            }
+        }
+
+        /* Load giờ rảnh/bận, có excludeId để bỏ qua chính lịch đang sửa */
+        async function loadTimeSlotsEdit() {
+            const ngay = document.getElementById('ngayHen').value;
+            const manv = document.getElementById('nhanVien').value;
+            const maLh = document.querySelector('.container').dataset.id;
+            if (!ngay || !manv) return;
+
+            const currentTime = normalizeTime(document.querySelector('.container').dataset.currentTime || '');
+
+            let dvIds = [];
+            document.querySelectorAll('.dv-check:checked').forEach(cb => dvIds.push(cb.value));
+
+            let url = `/user/lichhen/api/timeslots?manv=${manv}&ngay=${ngay}&excludeId=${maLh}`;
+            dvIds.forEach(id => url += `&dvIds[]=${id}`);
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                const select = document.getElementById('gioHen');
+                select.innerHTML = '<option value="">-- Chọn giờ --</option>';
+
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.time;
+                    if (item.busy) {
+                        opt.textContent = `${item.time} (Bận)`;
+                        opt.disabled = true;
+                        opt.className = 'busy';
+                    } else {
+                        opt.textContent = item.time;
+                        opt.className = 'free';
+                    }
+
+                    if (item.time === currentTime) opt.selected = true;
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('loadTimeSlotsEdit error', e);
+            }
+        }
+
+        /* Event bindings */
+        document.getElementById('ngayHen').addEventListener('change', checkEnableTimeEdit);
+        document.getElementById('nhanVien').addEventListener('change', checkEnableTimeEdit);
+        document.querySelectorAll('.dv-check').forEach(cb => cb.addEventListener('change', checkEnableTimeEdit));
+
+        /* Khi mở trang edit: chờ DOM render xong, sau đó kiểm tra và load */
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkEnableTimeEdit();
+            }, 80);
+        });
+
+        /* Chặn chỉnh sửa về quá khứ */
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            const d = document.getElementById('ngayHen').value;
+            const t = document.getElementById('gioHen').value;
+            if (!d || !t) return;
+            const selected = new Date(d + 'T' + t);
+            if (selected < new Date()) {
+                e.preventDefault();
+                alert('❌ Không thể chỉnh sửa về quá khứ!');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

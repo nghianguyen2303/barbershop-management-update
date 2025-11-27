@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Nhân Viên</title>
+
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        h2 { margin-bottom: 15px; }
+
+        form { width: 350px; }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #aaa;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #1976d2;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        a.button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background: #555;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Thêm Nhân Viên</h2>
+
+<form th:action="@{/admin/nhanvien/add}" th:object="${nhanVien}" method="post">
+
+    <label>Họ tên:</label>
+    <input type="text" th:field="*{hoTen}" required>
+
+    <label>Số điện thoại:</label>
+    <input type="text" th:field="*{sdt}" required>
+
+    <label>Giới tính:</label>
+    <select th:field="*{gioiTinh}" required>
+        <option value="">-- Chọn giới tính --</option>
+        <option value="Nam">Nam</option>
+        <option value="Nữ">Nữ</option>
+    </select>
+
+    <label>Ngày sinh:</label>
+    <input type="date" th:field="*{ngaySinh}" required>
+
+    <label>Chức vụ:</label>
+    <input type="text" th:field="*{chucVu}" required>
+
+    <label>Ngày vào làm:</label>
+    <input type="date" th:field="*{ngayVaoLam}" required>
+
+    <label>Lương cơ bản:</label>
+    <input type="number" th:field="*{luongCoBan}" required>
+
+    <label>Ca làm:</label>
+    <select th:field="*{caLam}">
+        <option value="">-- Chọn ca --</option>
+        <option th:each="ca : ${listCaLam}"
+                th:value="${ca.maCa}"
+                th:text="${ca.tenCa}">
+        </option>
+    </select>
+
+    <button type="submit">Lưu</button>
+</form>
+
+<a href="/admin/nhanvien" class="button">← Quay lại</a>
+
+</body>
+</html>

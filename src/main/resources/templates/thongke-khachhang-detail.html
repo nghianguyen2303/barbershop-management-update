@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Lịch sử dịch vụ</title>
+</head>
+<body>
+
+<h2>Lịch sử khách hàng: <span th:text="${khachHang.hoTen}"></span></h2>
+
+<table border="1" cellpadding="8">
+    <thead>
+        <tr>
+            <th>Tên dịch vụ</th>
+            <th>Giá</th>
+            <th>Bắt đầu</th>
+            <th>Kết thúc</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr th:each="row : ${lichSu}">
+            <td th:text="${row[0]}"></td>
+            <td th:text="${row[1]}"></td>
+            <td th:text="${#temporals.format(row[2], 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${#temporals.format(row[3], 'dd/MM/yyyy HH:mm')}"></td>
+        </tr>
+    </tbody>
+</table>
+
+<a href="/admin/thongke/khachhang">← Quay lại</a>
+
+</body>
+</html>

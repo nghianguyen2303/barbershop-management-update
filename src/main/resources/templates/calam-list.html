@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách ca làm</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f4f6fb;
+        }
+
+        .page-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+        }
+
+        .table thead th {
+            background: #eef2ff;
+            font-weight: 600;
+        }
+
+        .btn-sm {
+            border-radius: 999px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h4 class="mb-0">
+                    <i class="fa-regular fa-clock text-primary me-1"></i>Danh sách ca làm
+                </h4>
+                <small class="text-muted">Quản lý thông tin ca làm việc của nhân viên.</small>
+            </div>
+            <a href="/admin/home" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left-long me-1"></i>Quay lại Dashboard
+            </a>
+        </div>
+
+        <!-- BLOCK: YÊU CẦU ĐỔI CA CỦA NHÂN VIÊN -->
+        <div class="mb-3" th:if="${shiftRequests != null and !#lists.isEmpty(shiftRequests)}">
+            <div class="card border-warning">
+                <div class="card-header bg-warning bg-opacity-25 border-warning py-2">
+                    <strong class="text-warning-emphasis">
+                        <i class="fa-solid fa-right-left me-1"></i>
+                        Yêu cầu đổi ca của nhân viên
+                    </strong>
+                </div>
+                <div class="card-body p-2">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-1 align-middle">
+                            <thead>
+                                <tr class="table-warning">
+                                    <th>Nhân viên</th>
+                                    <th>Ngày</th>
+                                    <th>Ca hiện tại</th>
+                                    <th>Ca muốn đổi</th>
+                                    <th>Lý do / Xử lý</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="req : ${shiftRequests}">
+                                    <td th:text="${req.staffName}"></td>
+                                    <td th:text="${req.date}"></td>
+                                    <td th:text="${req.currentShift}"></td>
+                                    <td th:text="${req.desiredShift}"></td>
+                                    <td>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span th:text="${req.reason}"></span>
+                                            <a class="btn btn-outline-success btn-sm ms-2"
+                                                th:href="@{'/admin/calam/request/delete/' + ${req.id}}"
+                                                onclick="return confirm('Đánh dấu đã xử lý và ẩn yêu cầu này?')">
+                                                Đã xử lý
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted">
+                        * Lưu ý: các yêu cầu này chỉ được lưu tạm trong bộ nhớ. Admin cần tự chỉnh ca làm tương ứng cho
+                        nhân viên trong bảng bên dưới.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card page-card">
+            <div class="card-header bg-white border-0 pb-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Tổng số ca: <strong th:text="${#lists.size(listCaLam)}">0</strong>
+                    </div>
+                    <a class="btn btn-success btn-sm" href="/admin/calam/add">
+                        <i class="fa-solid fa-plus me-1"></i> Thêm ca làm
+                    </a>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã ca</th>
+                                <th>Ngày làm việc</th>
+                                <th>Giờ bắt đầu</th>
+                                <th>Giờ kết thúc</th>
+                                <th style="width: 160px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="ca : ${listCaLam}">
+                                <td class="fw-semibold" th:text="${ca.maCa}"></td>
+                                <td th:text="${#temporals.format(ca.ngayLamViec, 'dd/MM/yyyy')}"></td>
+                                <td th:text="${ca.gioBatDau}"></td>
+                                <td th:text="${ca.gioKetThuc}"></td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a class="btn btn-outline-primary btn-sm"
+                                            th:href="@{'/admin/calam/edit/' + ${ca.maCa}}">
+                                            <i class="fa-regular fa-pen-to-square me-1"></i>Sửa
+                                        </a>
+                                        <a class="btn btn-outline-danger btn-sm"
+                                            th:href="@{'/admin/calam/delete/' + ${ca.maCa}}"
+                                            onclick="return confirm('Bạn có chắc muốn xóa ca này?')">
+                                            <i class="fa-regular fa-trash-can me-1"></i>Xóa
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(listCaLam)}">
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    Chưa có ca làm nào trong hệ thống.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh sửa Dịch vụ</title>
+
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        form { width: 350px; }
+        label { display: block; margin-top: 10px; }
+        input {
+            width: 100%; padding: 8px; margin-top: 5px;
+            border-radius: 5px; border: 1px solid #aaa;
+        }
+        button {
+            margin-top: 15px; padding: 10px 15px;
+            background: #1976d2; border: none; color: white;
+            cursor: pointer; border-radius: 5px;
+        }
+        a.button {
+            display: inline-block;
+            margin-top: 10px;
+            background: #555; color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Chỉnh sửa Dịch vụ</h2>
+
+<form th:action="@{/admin/dichvu/edit}" th:object="${dichVu}" method="post">
+
+    <input type="hidden" th:field="*{maDv}">
+
+    <label>Tên dịch vụ:</label>
+    <input type="text" th:field="*{tenDv}" required>
+
+    <label>Giá (VND):</label>
+    <input type="number" th:field="*{gia}" required>
+
+    <label>Thời gian thực hiện (phút):</label>
+    <input type="number" th:field="*{thoiGianThucHien}" required>
+
+    <button type="submit">Cập nhật</button>
+</form>
+
+<a href="/admin/dichvu" class="button">← Quay lại</a>
+
+</body>
+</html>

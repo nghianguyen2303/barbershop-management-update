@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh sửa Nhân Viên</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        form {
+            width: 400px;
+        }
+
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #1976d2;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        a.button {
+            margin-top: 20px;
+            display: inline-block;
+            padding: 8px 12px;
+            background: #1976d2;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Chỉnh sửa Nhân Viên</h2>
+
+    <form th:action="@{/admin/nhanvien/edit}" th:object="${nhanVien}" method="post">
+
+        <!-- ID -->
+        <input type="hidden" th:field="*{manv}">
+
+        <!-- GIỮ ACCOUNT ID (rất quan trọng) -->
+        <input type="hidden" name="accountId" th:value="${nhanVien.account != null ? nhanVien.account.id : 0}">
+
+        <label>Họ tên:</label>
+        <input type="text" th:field="*{hoTen}" required>
+
+        <label>Số điện thoại:</label>
+        <input type="text" th:field="*{sdt}" required>
+
+        <label>Giới tính:</label>
+        <select th:field="*{gioiTinh}" required>
+            <option value="">-- Chọn giới tính --</option>
+            <option value="Nam" th:selected="${nhanVien.gioiTinh == 'Nam'}">Nam</option>
+            <option value="Nữ" th:selected="${nhanVien.gioiTinh == 'Nữ'}">Nữ</option>
+        </select>
+
+        <label>Ngày sinh:</label>
+        <input type="date" name="ngaySinh"
+            th:value="${nhanVien.ngaySinh != null ? #temporals.format(nhanVien.ngaySinh, 'yyyy-MM-dd') : ''}"
+            required />
+
+        <label>Chức vụ:</label>
+        <input type="text" th:field="*{chucVu}" required>
+
+        <label>Ngày vào làm:</label>
+        <input type="date" name="ngayVaoLam"
+            th:value="${nhanVien.ngayVaoLam != null ? #temporals.format(nhanVien.ngayVaoLam, 'yyyy-MM-dd') : ''}"
+            required />
+
+        <label>Lương cơ bản:</label>
+        <input type="number" th:field="*{luongCoBan}" required>
+
+        <label>Ca làm:</label>
+        <select th:field="*{caLam.maCa}">
+            <option value="">-- Chọn ca --</option>
+            <option th:each="ca : ${listCaLam}" th:value="${ca.maCa}" th:text="${ca.tenCa}"
+                th:selected="${nhanVien.caLam != null && ca.maCa == nhanVien.caLam.maCa}">
+            </option>
+        </select>
+
+        <button type="submit">Cập nhật</button>
+    </form>
+
+    <a href="/admin/nhanvien" class="button">← Quay lại</a>
+
+</body>
+
+</html>

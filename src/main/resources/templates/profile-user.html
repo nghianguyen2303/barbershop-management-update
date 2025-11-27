@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thông tin cá nhân</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f2f2f2;
+            padding: 25px;
+        }
+
+        .container {
+            width: 480px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.15);
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin-top: 12px;
+            display: block;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            background: #1976d2;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { background: #0d47a1; }
+
+        .back-btn {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            background: #9e9e9e;
+            padding: 10px;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+        }
+        .back-btn:hover { background: #616161; }
+
+        /* ALERT */
+        .alert {
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #c8f7c5;
+            color: #2d7d2d;
+            border: 1px solid #2d7d2d;
+        }
+
+        .alert-error {
+            background: #ffe0e0;
+            color: #bb0000;
+            border: 1px solid #bb0000;
+        }
+
+        /* Phone check message */
+        #phoneMsg {
+            margin-top: 3px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .ok { color: green; }
+        .err { color: red; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Thông tin cá nhân</h2>
+
+    <!-- SUCCESS -->
+    <div th:if="${successMsg}" class="alert alert-success" th:text="${successMsg}"></div>
+
+    <!-- ERROR -->
+    <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+
+    <form th:action="@{/user/profile/update}" method="post">
+
+        <label>Họ tên:</label>
+        <input type="text" name="hoTen" th:value="${kh.hoTen}" required>
+
+        <label>Số điện thoại:</label>
+        <input type="text" id="sdt" name="sdt" th:value="${kh.sdt}" required>
+        <div id="phoneMsg"></div>
+
+        <label>Giới tính:</label>
+        <select name="gioiTinh">
+            <option value="">-- Chọn giới tính --</option>
+            <option value="Nam" th:selected="${kh.gioiTinh == 'Nam'}">Nam</option>
+            <option value="Nữ" th:selected="${kh.gioiTinh == 'Nữ'}">Nữ</option>
+        </select>
+
+        <label>Ngày sinh:</label>
+        <input type="date"
+               name="ngaySinh"
+               th:value="${kh.ngaySinh != null ? #temporals.format(kh.ngaySinh, 'yyyy-MM-dd') : ''}">
+
+        <button type="submit" id="btnSave">💾 Cập nhật</button>
+    </form>
+
+    <a href="/user/home" class="back-btn">← Quay lại</a>
+
+</div>
+
+
+<!-- ================================
+      AJAX CHECK PHONE REAL-TIME
+================================ -->
+<script>
+    const phoneInput = document.getElementById("sdt");
+    const phoneMsg = document.getElementById("phoneMsg");
+    const btnSave = document.getElementById("btnSave");
+
+    phoneInput.addEventListener("input", function () {
+
+        const sdt = phoneInput.value.trim();
+
+        if (sdt.length === 0) {
+            phoneMsg.innerHTML = "";
+            btnSave.disabled = false;
+            return;
+        }
+
+        fetch(`/user/checkPhone?sdt=` + sdt)
+            .then(res => res.text())
+            .then(isUsed => {
+
+                if (isUsed === "true") {
+                    phoneMsg.innerHTML = "❌ Số điện thoại đã tồn tại!";
+                    phoneMsg.className = "err";
+                    btnSave.disabled = true;
+                } else {
+                    phoneMsg.innerHTML = "✔ Số điện thoại hợp lệ";
+                    phoneMsg.className = "ok";
+                    btnSave.disabled = false;
+                }
+            })
+            .catch(err => console.error(err));
+    });
+</script>
+<script>
+    // Tự động ẩn thông báo sau 2 giây
+    setTimeout(function () {
+        let alerts = document.querySelectorAll(".alert");
+        alerts.forEach(a => {
+            a.style.transition = "opacity 0.6s";
+            a.style.opacity = "0";
+
+            // Sau hiệu ứng fade-out thì ẩn hẳn
+            setTimeout(() => a.style.display = "none", 600);
+        });
+    }, 2000);
+</script>
+</body>
+</html>

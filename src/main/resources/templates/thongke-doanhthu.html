@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Thống kê doanh thu</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f4f4f4;
+        }
+
+        .card {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        select {
+            padding: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .btn-view {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+            margin-right: 4px;
+        }
+
+        .btn-pdf {
+            background: #ffffff;
+            color: #198754;
+            border-color: #198754;
+        }
+
+        .btn-pdf:hover {
+            background: #198754;
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>📊 Thống kê doanh thu theo tháng</h2>
+
+    <!-- Chọn năm cần xem -->
+    <div class="card">
+        <label><strong>Chọn năm:</strong></label>
+        <select id="selectNam" onchange="changeYear()">
+            <option th:each="y : ${#numbers.sequence(2022, 2030)}" th:value="${y}" th:selected="${y == nam}"
+                th:text="${y}">
+            </option>
+        </select>
+    </div>
+
+    <!-- Biểu đồ -->
+    <div class="card">
+        <h3>Biểu đồ doanh thu theo tháng</h3>
+        <canvas id="chartDoanhThu" height="120"></canvas>
+    </div>
+
+    <!-- Bảng doanh thu -->
+    <div class="card">
+        <h3>Bảng doanh thu theo tháng</h3>
+        <table>
+            <tr>
+                <th>Tháng</th>
+                <th>Doanh thu (VNĐ)</th>
+                <th>Hành động</th>
+            </tr>
+
+            <tr th:each="t, i : ${#numbers.sequence(1,12)}">
+                <td th:text="${t}"></td>
+                <td th:text="${#numbers.formatDecimal(doanhThu[i.index],0,'COMMA',0,'POINT')}"></td>
+                <td>
+                    <!-- Xem chi tiết thống kê tháng -->
+                    <a class="btn btn-view" th:href="@{'/admin/thongke/month'(nam=${nam}, thang=${t})}">
+                        Xem chi tiết
+                    </a>
+
+                    <!-- Xuất PDF báo cáo tháng -->
+                    <a class="btn btn-pdf" th:href="@{'/admin/thongke/month/export-pdf'(nam=${nam}, thang=${t})}"
+                        target="_blank">
+                        Xuất PDF
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <a href="/admin/home">← Quay lại Dashboard</a>
+
+    <script>
+        function changeYear() {
+            const year = document.getElementById("selectNam").value;
+            window.location.href = "/admin/thongke?nam=" + year;
+        }
+
+        // Load dữ liệu biểu đồ
+        const nam = document.getElementById("selectNam").value;
+
+        fetch(`/admin/thongke/chart-data?nam=${nam}`)
+            .then(res => res.json())
+            .then(data => {
+                const ctx = document.getElementById("chartDoanhThu");
+
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: data.thang,
+                        datasets: [{
+                            label: "Doanh thu (VNĐ)",
+                            data: data.doanhThu,
+                            borderWidth: 1
+                        }]
+                    }
+                });
+            });
+    </script>
+
+</body>
+
+</html>

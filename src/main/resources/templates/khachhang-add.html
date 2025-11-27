@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm khách hàng</title>
+
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        form { width: 350px; }
+        label { font-weight: bold; margin-top: 10px; display: block; }
+        input, select {
+            width: 100%; padding: 8px; border: 1px solid #aaa;
+            border-radius: 5px; margin-top: 5px;
+        }
+        button {
+            margin-top: 15px; padding: 10px 15px; background: #1976d2;
+            border: none; color: white; border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Thêm khách hàng</h2>
+
+<form th:action="@{/admin/khachhang/add}" th:object="${khachHang}" method="post">
+
+    <label>Họ tên:</label>
+    <input type="text" th:field="*{hoTen}" required>
+
+    <label>Giới tính:</label>
+    <select th:field="*{gioiTinh}" required>
+        <option value="">-- Chọn giới tính --</option>
+        <option value="Nam">Nam</option>
+        <option value="Nữ">Nữ</option>
+    </select>
+
+    <label>Ngày sinh:</label>
+    <input type="date" th:field="*{ngaySinh}" required>
+
+    <label>Số điện thoại:</label>
+    <input type="text" th:field="*{sdt}" required>
+
+    <button type="submit">Lưu</button>
+</form>
+
+<a href="/admin/khachhang">← Quay lại</a>
+
+</body>
+</html>

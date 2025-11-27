@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Thêm Lịch hẹn</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f4f6fb;
+        }
+
+        .form-card {
+            max-width: 520px;
+            margin: 32px auto;
+            border-radius: 18px;
+            border: none;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+        }
+
+        .dv-box {
+            border-radius: 10px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .alert-error {
+            border-radius: 12px;
+        }
+
+        .slot-busy {
+            background: #ffe0e0;
+        }
+
+        .slot-free {
+            background: #e3f2fd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="card form-card">
+            <div class="card-header bg-primary text-white border-0">
+                <h5 class="mb-0">
+                    <i class="fa-regular fa-calendar-plus me-1"></i> Thêm Lịch hẹn
+                </h5>
+                <small class="d-block text-white-50">
+                    Chọn ngày, thợ và dịch vụ – hệ thống sẽ gợi ý khung giờ trống.
+                </small>
+            </div>
+
+            <div class="card-body">
+
+                <div th:if="${errorMsg}" class="alert alert-danger alert-error" th:text="${errorMsg}"></div>
+
+                <form th:action="@{/user/lichhen/save}" method="post" id="addForm">
+
+                    <!-- Ngày hẹn -->
+                    <div class="mb-3">
+                        <label class="form-label">Ngày hẹn</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-regular fa-calendar"></i></span>
+                            <input type="date" name="ngayHen" id="ngayHen" class="form-control" required />
+                        </div>
+                    </div>
+
+                    <!-- Nhân viên -->
+                    <div class="mb-3">
+                        <label class="form-label">Nhân viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-solid fa-user-tie"></i></span>
+                            <select name="manv" id="manv" class="form-select" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                                <option th:each="nv : ${listNhanVien}" th:value="${nv.manv}" th:text="${nv.hoTen}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dịch vụ -->
+                    <div class="mb-3">
+                        <label class="form-label">Dịch vụ</label>
+                        <div class="dv-box border bg-light p-2">
+                            <div class="form-check" th:each="dv : ${listDichVu}">
+                                <input class="form-check-input" type="checkbox" name="dichVuChon" id="dvIds"
+                                    th:value="${dv.maDv}" />
+                                <label class="form-check-label">
+                                    <span class="fw-semibold" th:text="${dv.tenDv}"></span>
+                                    <span class="text-muted small">
+                                        – <span th:text="${dv.thoiGianThucHien}"></span> phút
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <small class="text-muted">Bạn có thể chọn nhiều dịch vụ cùng lúc.</small>
+                    </div>
+
+                    <!-- Giờ hẹn -->
+                    <div class="mb-3">
+                        <label class="form-label">Giờ hẹn</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa-regular fa-clock"></i></span>
+                            <select name="gioHen" id="gioHen" class="form-select" required>
+                                <option value="">-- Chọn giờ --</option>
+                            </select>
+                        </div>
+                        <small class="text-muted">Khung giờ màu xám là đã có khách, không thể chọn.</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fa-solid fa-check me-1"></i> Đặt lịch hẹn
+                    </button>
+                </form>
+
+                <a href="/user/home" class="btn btn-link mt-3">
+                    ← Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadTimeSlots() {
+
+            const ngay = document.getElementById('ngayHen').value;
+            const manv = document.getElementById('manv').value;
+
+            if (!ngay || !manv) return;
+
+            let dvIds = [];
+            document.querySelectorAll("input[name='dichVuChon']:checked").forEach(cb => {
+                dvIds.push(cb.value);
+            });
+
+            // ✅ GỬI DẠNG dvIds=1&dvIds=2 (KHÔNG CÓ [])
+            let url = `/user/lichhen/api/timeslots?manv=${encodeURIComponent(manv)}&ngay=${encodeURIComponent(ngay)}`;
+            dvIds.forEach(id => {
+                url += `&dvIds=${encodeURIComponent(id)}`;
+            });
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error("Lỗi API timeslots:", response.status, text);
+                    alert("Không tải được khung giờ. Bạn thử chọn lại ngày/nhân viên khác nhé.");
+                    return;
+                }
+
+                const data = await response.json();
+
+                const select = document.getElementById('gioHen');
+                select.innerHTML = '<option value="">-- Chọn giờ --</option>';
+
+                data.forEach(item => {
+                    const opt = document.createElement("option");
+                    opt.value = item.time;
+
+                    if (item.busy) {
+                        opt.textContent = `${item.time} (Bận)`;
+                        opt.disabled = true;
+                        opt.classList.add("slot-busy");
+                    } else {
+                        opt.textContent = item.time;
+                        opt.classList.add("slot-free");
+                    }
+
+                    select.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Lỗi fetch timeslots:", e);
+                alert("Xảy ra lỗi mạng khi tải khung giờ. Vui lòng thử lại.");
+            }
+        }
+
+        document.getElementById('ngayHen').addEventListener('change', loadTimeSlots);
+        document.getElementById('manv').addEventListener('change', loadTimeSlots);
+        document.querySelectorAll("input[name='dichVuChon']").forEach(cb => {
+            cb.addEventListener("change", loadTimeSlots);
+        });
+
+        document.getElementById('addForm').addEventListener('submit', function (e) {
+            const date = document.getElementById('ngayHen').value;
+            const time = document.getElementById('gioHen').value;
+
+            if (!date || !time) return;
+
+            const selected = new Date(date + "T" + time);
+            const now = new Date();
+
+            if (selected < now) {
+                e.preventDefault();
+                alert("❌ Không thể đặt lịch trong quá khứ!");
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>
