@@ -1,14 +1,23 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Thêm Nhân Viên</title>
 
     <style>
-        body { font-family: Arial; padding: 20px; }
-        h2 { margin-bottom: 15px; }
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
 
-        form { width: 350px; }
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        form {
+            width: 350px;
+        }
 
         label {
             display: block;
@@ -16,7 +25,8 @@
             font-weight: bold;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 8px;
             margin-top: 5px;
@@ -45,50 +55,54 @@
         }
     </style>
 </head>
+
 <body>
 
-<h2>Thêm Nhân Viên</h2>
+    <h2>Thêm Nhân Viên</h2>
 
-<form th:action="@{/admin/nhanvien/add}" th:object="${nhanVien}" method="post">
+    <form th:action="@{/admin/nhanvien/add}" th:object="${nhanVien}" method="post">
 
-    <label>Họ tên:</label>
-    <input type="text" th:field="*{hoTen}" required>
+        <!-- MÃ NHÂN VIÊN (nhập tay) -->
+        <label>Mã nhân viên:</label>
+        <input type="number" th:field="*{manv}" placeholder="Nhập mã nhân viên" required>
 
-    <label>Số điện thoại:</label>
-    <input type="text" th:field="*{sdt}" required>
+        <label>Họ tên:</label>
+        <input type="text" th:field="*{hoTen}" required>
 
-    <label>Giới tính:</label>
-    <select th:field="*{gioiTinh}" required>
-        <option value="">-- Chọn giới tính --</option>
-        <option value="Nam">Nam</option>
-        <option value="Nữ">Nữ</option>
-    </select>
+        <label>Số điện thoại:</label>
+        <input type="text" th:field="*{sdt}" required>
 
-    <label>Ngày sinh:</label>
-    <input type="date" th:field="*{ngaySinh}" required>
+        <label>Giới tính:</label>
+        <select th:field="*{gioiTinh}" required>
+            <option value="">-- Chọn giới tính --</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+        </select>
 
-    <label>Chức vụ:</label>
-    <input type="text" th:field="*{chucVu}" required>
+        <label>Ngày sinh:</label>
+        <input type="date" th:field="*{ngaySinh}" required>
 
-    <label>Ngày vào làm:</label>
-    <input type="date" th:field="*{ngayVaoLam}" required>
+        <label>Chức vụ:</label>
+        <input type="text" th:field="*{chucVu}" required>
 
-    <label>Lương cơ bản:</label>
-    <input type="number" th:field="*{luongCoBan}" required>
+        <label>Ngày vào làm:</label>
+        <input type="date" th:field="*{ngayVaoLam}" required>
 
-    <label>Ca làm:</label>
-    <select th:field="*{caLam}">
-        <option value="">-- Chọn ca --</option>
-        <option th:each="ca : ${listCaLam}"
-                th:value="${ca.maCa}"
-                th:text="${ca.tenCa}">
-        </option>
-    </select>
+        <label>Lương cơ bản:</label>
+        <input type="number" th:field="*{luongCoBan}" required>
 
-    <button type="submit">Lưu</button>
-</form>
+        <label>Ca làm:</label>
+        <select th:field="*{caLam}">
+            <option value="">-- Chọn ca --</option>
+            <option th:each="ca : ${listCaLam}" th:value="${ca.maCa}" th:text="${ca.tenCa}">
+            </option>
+        </select>
 
-<a href="/admin/nhanvien" class="button">← Quay lại</a>
+        <button type="submit">Lưu</button>
+    </form>
+
+    <a href="/admin/nhanvien" class="button">← Quay lại</a>
 
 </body>
+
 </html>

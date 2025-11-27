@@ -131,7 +131,7 @@ DROP TABLE IF EXISTS `khach_hang`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `khach_hang` (
   `account_id` int DEFAULT NULL,
-  `makh` int NOT NULL AUTO_INCREMENT,
+  `makh` int NOT NULL,
   `ngay_sinh` date DEFAULT NULL,
   `gioi_tinh` varchar(10) DEFAULT NULL,
   `sdt` varchar(20) DEFAULT NULL,
@@ -161,7 +161,7 @@ DROP TABLE IF EXISTS `lich_hen`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `lich_hen` (
   `gio_hen` time(6) DEFAULT NULL,
-  `ma_lh` int NOT NULL AUTO_INCREMENT,
+  `ma_lh` int NOT NULL,
   `makh` int DEFAULT NULL,
   `manv` int DEFAULT NULL,
   `ngay_hen` date DEFAULT NULL,

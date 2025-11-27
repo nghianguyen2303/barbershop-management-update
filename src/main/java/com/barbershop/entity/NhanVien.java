@@ -8,7 +8,6 @@ import java.time.LocalDate;
 public class NhanVien {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "manv")
     private Integer manv; // SỬA LẠI ĐÚNG TÊN CỘT TRONG DATABASE
 

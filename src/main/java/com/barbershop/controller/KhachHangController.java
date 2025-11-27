@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -52,8 +53,20 @@ public class KhachHangController {
 
     // ===================== XỬ LÝ THÊM =====================
     @PostMapping("/add")
-    public String add(@ModelAttribute KhachHang kh) {
+    public String add(@ModelAttribute KhachHang kh, RedirectAttributes ra) {
+
+        if (kh.getMakh() == null) {
+            ra.addFlashAttribute("errorMsg", "Vui lòng nhập mã khách hàng!");
+            return "redirect:/admin/khachhang/add";
+        }
+
+        if (khachHangRepo.existsById(kh.getMakh())) {
+            ra.addFlashAttribute("errorMsg", "Mã khách hàng đã tồn tại!");
+            return "redirect:/admin/khachhang/add";
+        }
+
         khachHangRepo.save(kh);
+        ra.addFlashAttribute("successMsg", "Thêm khách hàng thành công!");
         return "redirect:/admin/khachhang";
     }
 

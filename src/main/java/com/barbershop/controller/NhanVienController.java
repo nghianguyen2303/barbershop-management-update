@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -61,14 +62,24 @@ public class NhanVienController {
 
     // =================== XỬ LÝ THÊM (TỰ TẠO ACCOUNT STAFF) ====================
     @PostMapping("/add")
-    public String add(@ModelAttribute NhanVien nv) {
+    public String add(@ModelAttribute NhanVien nv, RedirectAttributes ra) {
 
-        // Chỉ tạo account nếu NV chưa có account
+        // ===== Kiểm tra mã nhân viên =====
+        if (nv.getManv() == null) {
+            ra.addFlashAttribute("errorMsg", "Vui lòng nhập mã nhân viên!");
+            return "redirect:/admin/nhanvien/add";
+        }
+
+        if (nhanVienRepo.existsById(nv.getManv())) {
+            ra.addFlashAttribute("errorMsg", "Mã nhân viên đã tồn tại!");
+            return "redirect:/admin/nhanvien/add";
+        }
+
+        // ===== Xử lý account nếu chưa có =====
         if (nv.getAccount() == null) {
 
             Account acc = new Account();
 
-            // ----- sinh username mặc định -----
             String baseUsername;
             if (nv.getSdt() != null && !nv.getSdt().isBlank()) {
                 baseUsername = nv.getSdt().trim();
@@ -83,24 +94,23 @@ public class NhanVienController {
 
             String username = baseUsername;
             int suffix = 1;
-            // Nếu trùng username thì thêm số 1,2,3...
             while (accountRepo.existsByUsername(username)) {
                 username = baseUsername + suffix;
                 suffix++;
             }
 
             acc.setUsername(username);
-            acc.setPassword("123456"); // password mặc định
+            acc.setPassword("123456");
             acc.setRole("STAFF");
 
-            // Lưu account trước
             accountRepo.save(acc);
 
-            // Gắn account vào nhân viên
             nv.setAccount(acc);
         }
 
         nhanVienRepo.save(nv);
+
+        ra.addFlashAttribute("successMsg", "Thêm nhân viên thành công!");
         return "redirect:/admin/nhanvien";
     }
 
